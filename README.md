@@ -1,3 +1,3 @@
 # ArduinoProjects
 Collection of Arduino Sketches
-Place to share sketches across platforms
+allows sharing of sketches across platforms
