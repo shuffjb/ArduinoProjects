@@ -1,6 +1,3 @@
-#include <TinyGPS++.h>
-#include <SoftwareSerial.h>
-
  /*
   * GPS Experiments wiht uBloc 6m
   *    Examples of all functions from TinyGPS++ Library
@@ -10,9 +7,26 @@
   * 
   * 
   */
+
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+
+// Oled Text Setup ---------------------------------------------
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiAvrI2c.h"
+
+// 0X3C+SA0 - 0x3C or 0x3D
+#define I2C_ADDRESS 0x3C
+
+// Define proper RST_PIN if required.
+#define RST_PIN -1
+
+SSD1306AsciiAvrI2c oled;
+// end Oled Text setup
+
+// GPS, Comms constants
 static const int RXPin = 4, TXPin = 3;
 static const uint32_t GPSBaud = 9600;
-
 // The TinyGPS++ object
 TinyGPSPlus gps;
 
@@ -21,8 +35,22 @@ SoftwareSerial ss(RXPin, TXPin);
   
 void setup() {
   Serial.begin(9600);
-  ss.begin(GPSBaud);
+  
 
+  // Oled Display Setup
+#if RST_PIN >= 0
+  oled.begin(&Adafruit128x64, I2C_ADDRESS, RST_PIN);
+#else // RST_PIN >= 0
+  oled.begin(&Adafruit128x64, I2C_ADDRESS);
+#endif // RST_PIN >= 0
+  // Call oled.setI2cClock(frequency) to change from the default frequency.
+
+  oled.setFont(System5x7);
+  oled.clear();
+  oled.print("Hello world!");
+  // End Oled Setup
+
+  ss.begin(GPSBaud);
 }
 
 void loop() {
@@ -30,8 +58,12 @@ void loop() {
   Serial.print("Start Loop ");
   Serial.print(ss.available(), 3);
   Serial.println(" <---");
+
+  oled.clear();
+  oled.println(F("Start Loop"));
+
   while (ss.available() > 0){
-    Serial.println(ss.read());
+    //Serial.println(ss.read());
     gps.encode(ss.read());
     if (gps.location.isUpdated()){
       // Latitude in degrees (double)
@@ -40,7 +72,12 @@ void loop() {
       // Longitude in degrees (double)
       Serial.print(" Longitude= "); 
       Serial.println(gps.location.lng(), 6); 
-       
+      
+      oled.clear();
+      oled.println(F("Start Loop"));
+      oled.print("Lat:"); oled.println(gps.location.lat(), 6); 
+      oled.print("Lng:"); oled.println(gps.location.lng(), 6); 
+
       // Raw latitude in whole degrees
       Serial.print("Raw latitude = "); 
       Serial.print(gps.location.rawLat().negative ? "-" : "+");
